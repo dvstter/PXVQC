@@ -8,6 +8,8 @@ struct MPS
     data::Vector{Array{Number, 3}}
 end
 
+Base.length(sys::MPS) = return length(sys.data)
+
 abstract type AbstractGate end
 abstract type AbstractOnebodyGate <: AbstractGate end
 abstract type AbstractTwobodyGate <: AbstractGate end
@@ -15,13 +17,15 @@ abstract type AbstractTwobodyGate <: AbstractGate end
 struct OnebodyGate <: AbstractOnebodyGate
     index::Int64
     operation::Array{Number, 2}
-    OnebodyGate(idx, op) = size(op) != (2,2) ? error("OnebodyGate parameter wrong") : new(idx, op)
+    description::String
+    OnebodyGate(idx, op, gatename) = size(op) != (2,2) ? error("OnebodyGate parameter wrong") : new(idx, op, "$gatename -> $idx")
 end
 
 struct TwobodyGate <: AbstractTwobodyGate
     indexes::Array{Int64, 1}
     operation::Array{Number, 4}
-    TwobodyGate(idxs, op) = size(op) != (2,2,2,2) || length(idxs) != 2 ? error("TwobodyGate parameter wrong") : new(idxs, op)
+    description::String
+    TwobodyGate(idxs, op, gatename) = size(op) != (2,2,2,2) || length(idxs) != 2 ? error("TwobodyGate parameter wrong") : new(idxs, op, "$gatename $(idxs[1]) -> $(idxs[2])")
 end
 
 mutable struct Variable
@@ -32,12 +36,16 @@ struct OnebodyVGate <: AbstractOnebodyGate
     index::Int64
     variable::Variable
     op_func::Any
+    description::String
+    OnebodyVGate(idx, var, op_f, gatename) = new(idx, var, op_f, "(v)$gatename($var) -> idx")
 end
 
 struct TwobodyVGate <: AbstractTwobodyGate
     indexes::Array{Int64, 1}
     variable::Variable
     op_func::Any
+    description::String
+    TwobodyVGate(idxs, var, op_f, gatename) = new(idxs, var, op_f, "(v)$gatename($var) $(idxs[1]) -> $(idxs[2])")
 end
 
 struct QuantumCircuit
@@ -66,6 +74,9 @@ Base.setindex!(circuit::QuantumCircuit, gate::AbstractGate, index::Int64) = begi
     circuit.gates[index] = gate
     return old_gate
 end
-Base.push!(circuit::QuantumCircuit, gate::AbstractGate) = begin
-    push!(circuit.gates, gate)
+Base.push!(circuit::QuantumCircuit, gate::AbstractGate) = begin push!(circuit.gates, gate) end
+Base.show(io::IO, circuit::QuantumCircuit) = begin
+    for each in circuit
+        print(io, each.description)
+    end
 end

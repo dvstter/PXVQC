@@ -113,7 +113,8 @@ function tsvd(a::AbstractArray{𝕋, ℕ}, axes::Tuple) where {𝕋, ℕ}
     rsize = [sizeA[x] for x in raxes]
 
     # permute A, reshape to matrix then do svd
-    u, s, vt = stable_svd!(reshape(permutedims(a, [laxes;raxes]), prod(lsize), prod(rsize)))
+    #u, s, vt = stable_svd!(reshape(permutedims(a, [laxes;raxes]), prod(lsize), prod(rsize)))
+    u, s, vt = svd(reshape(permutedims(a, [laxes;raxes]), prod(lsize), prod(rsize)))
     u = u * sqrt(Diagonal(s)) # s will be absorbed into u and vt
     vt = vt * sqrt(Diagonal(s))
     # NOTES: I have spend alot of time on this line of code

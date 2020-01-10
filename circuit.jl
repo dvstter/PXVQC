@@ -181,3 +181,19 @@ function measure!(sys::MPS, i::Int64, output_probability::Bool=false)
         return 1
     end
 end
+
+function __oneshot(sys::MPS)
+    temp = deepcopy(sys)
+    result = []
+    for idx in 1:length(temp)
+        push!(result, measure!(temp, idx))
+    end
+    return result
+end
+
+# unfinished method
+function shots(sys::MPS, count::Int64)
+    for _ in 1:count
+        __oneshot(sys)
+    end
+end
